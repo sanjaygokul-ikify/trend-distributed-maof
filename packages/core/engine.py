@@ -18,11 +18,15 @@ class Engine:
         logger.info(f"Agent {agent.id} registered")
 
     def assign_task(self, task: Task):
-        if not self.agents:
-            raise NoAgentsAvailableException("No agents available to assign task to")
-        agent_id = self.get_available_agent()
-        self.agents[agent_id].assign_task(task)
-        logger.info(f"Task {task.id} assigned to agent {agent_id}")
+        try:
+            if not self.agents:
+                raise NoAgentsAvailableException("No agents available to assign task to")
+            agent_id = self.get_available_agent()
+            self.agents[agent_id].assign_task(task)
+            logger.info(f"Task {task.id} assigned to agent {agent_id}")
+            self.tasks.append(task)
+        except Exception as e:
+            raise InvalidTaskException("Error assigning task to agent") from e
 
     def get_available_agent(self) -> str:
         available_agents = [agent for agent in self.agents.values() if not agent.is_busy()]
@@ -32,16 +36,22 @@ class Engine:
 
     def monitor_tasks(self):
         for task in self.tasks:
-            task_status = self.get_task_status(task)
-            if task_status == TaskStatus.COMPLETED:
-                logger.info(f"Task {task.id} completed")
-                self.tasks.remove(task)
-            elif task_status == TaskStatus.FAILED:
-                logger.error(f"Task {task.id} failed")
+            try:
+                task_status = self.get_task_status(task)
+                if task_status == TaskStatus.COMPLETED:
+                    logger.info(f"Task {task.id} completed")
+                    self.tasks.remove(task)
+                elif task_status == TaskStatus.FAILED:
+                    logger.error(f"Task {task.id} failed")
+            except Exception as e:
+                raise InvalidTaskException("Error monitoring task") from e
 
     def get_task_status(self, task: Task) -> TaskStatus:
-        agent = self.agents[task.agent_id]
-        return agent.get_task_status(task)
+        try:
+            agent = self.agents[task.agent_id]
+            return agent.get_task_status(task)
+        except Exception as e:
+            raise InvalidTaskException("Error getting task status") from e
 
     def add_orchestrator(self, orchestrator: Orchestrator):
         self.orchestrator = orchestrator
