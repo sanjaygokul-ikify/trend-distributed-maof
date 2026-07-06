@@ -50,6 +50,8 @@ class Engine:
         try:
             agent = self.agents[task.agent_id]
             return agent.get_task_status(task)
+        except KeyError:
+            raise TaskNotFoundException(f"Task {task.id} not found") from None
         except Exception as e:
             raise InvalidTaskException("Error getting task status") from e
 
@@ -62,6 +64,21 @@ class Engine:
     def stop(self):
         pass
 
+    def get_agent(self, agent_id: str) -> Agent:
+        try:
+            return self.agents[agent_id]
+        except KeyError:
+            raise AgentNotFoundException(f"Agent {agent_id} not found") from None
+
+    def remove_agent(self, agent_id: str):
+        try:
+            del self.agents[agent_id]
+        except KeyError:
+            raise AgentNotFoundException(f"Agent {agent_id} not found") from None
+
+    def remove_task(self, task_id: str):
+        self.tasks = [task for task in self.tasks if task.id != task_id]
+
 class InvalidTaskException(Exception):
     pass
 
@@ -72,4 +89,7 @@ class NoAgentsAvailableException(InvalidTaskException):
     pass
 
 class TaskNotFoundException(InvalidTaskException):
+    pass
+
+class AgentNotFoundException(InvalidTaskException):
     pass
