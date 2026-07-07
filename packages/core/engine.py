@@ -44,6 +44,7 @@ class Engine:
                 elif task_status == TaskStatus.FAILED:
                     logger.error(f"Task {task.id} failed")
             except Exception as e:
+                logger.error(f"Error monitoring task {task.id}: {str(e)}")
                 raise InvalidTaskException("Error monitoring task") from e
 
     def get_task_status(self, task: Task) -> TaskStatus:
@@ -51,8 +52,10 @@ class Engine:
             agent = self.agents[task.agent_id]
             return agent.get_task_status(task)
         except KeyError:
+            logger.error(f"Task {task.id} not found")
             raise TaskNotFoundException(f"Task {task.id} not found") from None
         except Exception as e:
+            logger.error(f"Error getting task status for task {task.id}: {str(e)}")
             raise InvalidTaskException("Error getting task status") from e
 
     def add_orchestrator(self, orchestrator: Orchestrator):
@@ -68,12 +71,14 @@ class Engine:
         try:
             return self.agents[agent_id]
         except KeyError:
+            logger.error(f"Agent {agent_id} not found")
             raise AgentNotFoundException(f"Agent {agent_id} not found") from None
 
     def remove_agent(self, agent_id: str):
         try:
             del self.agents[agent_id]
         except KeyError:
+            logger.error(f"Agent {agent_id} not found")
             raise AgentNotFoundException(f"Agent {agent_id} not found") from None
 
     def remove_task(self, task_id: str):
