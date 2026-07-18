@@ -35,7 +35,7 @@ class Engine:
         return available_agents[0].id
 
     def monitor_tasks(self):
-        for task in self.tasks:
+        for task in self.tasks.copy():  # Create a copy to avoid modifying the list while iterating
             try:
                 task_status = self.get_task_status(task)
                 if task_status == TaskStatus.COMPLETED:
